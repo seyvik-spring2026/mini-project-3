@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} antialiased bg-slate-950 text-slate-200`}>
+      <body suppressHydrationWarning className={`${inter.className} antialiased bg-slate-950 text-slate-200`}>
         <Sidebar />
         <main className="ml-64 min-h-screen">{children}</main>
       </body>
