@@ -139,8 +139,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      queryText,
       candidatesFound,
       newCandidates,
+      skipped: candidatesFound - newCandidates,
       runId: run.id,
     });
   } catch (error) {
