@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
   const sortColumn =
     sort === "followers" ? candidates.followerCount :
-    sort === "recent" ? candidates.createdAt :
+    sort === "recent" ? candidates.accountCreatedAt :
     candidates.overallScore;
 
   const orderFn = order === "asc" ? asc : desc;

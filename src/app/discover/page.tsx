@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCandidates } from "@/lib/hooks";
 import { CandidateCard } from "@/components/candidate-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, SlidersHorizontal, ArrowUpDown, Users, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, ArrowUpDown, Users, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS = [
@@ -16,11 +16,21 @@ const SORT_OPTIONS = [
 export default function DiscoverPage() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("score");
+  const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [minScore, setMinScore] = useState("");
   const [maxScore, setMaxScore] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
-  const params: Record<string, string> = { sort, order: "desc" };
+  function handleSort(value: string) {
+    if (sort === value) {
+      setOrder(order === "desc" ? "asc" : "desc");
+    } else {
+      setSort(value);
+      setOrder("desc");
+    }
+  }
+
+  const params: Record<string, string> = { sort, order };
   if (search) params.search = search;
   if (minScore) params.minScore = minScore;
   if (maxScore) params.maxScore = maxScore;
@@ -59,21 +69,26 @@ export default function DiscoverPage() {
 
           {/* Sort buttons */}
           <div className="flex bg-slate-900 border border-slate-700 rounded-lg overflow-hidden">
-            {SORT_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setSort(option.value)}
-                className={cn(
-                  "flex items-center gap-1.5 px-3 py-2 text-sm transition-colors",
-                  sort === option.value
-                    ? "bg-indigo-600 text-white"
-                    : "text-slate-400 hover:text-white"
-                )}
-              >
-                <option.icon className="w-3.5 h-3.5" />
-                {option.label}
-              </button>
-            ))}
+            {SORT_OPTIONS.map((option) => {
+              const isActive = sort === option.value;
+              const OrderIcon = order === "desc" ? ChevronDown : ChevronUp;
+              return (
+                <button
+                  key={option.value}
+                  onClick={() => handleSort(option.value)}
+                  className={cn(
+                    "flex items-center gap-1.5 px-3 py-2 text-sm transition-colors",
+                    isActive
+                      ? "bg-indigo-600 text-white"
+                      : "text-slate-400 hover:text-white"
+                  )}
+                >
+                  <option.icon className="w-3.5 h-3.5" />
+                  {option.label}
+                  {isActive && <OrderIcon className="w-3 h-3" />}
+                </button>
+              );
+            })}
           </div>
 
           {/* Filter toggle */}
