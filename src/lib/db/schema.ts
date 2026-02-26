@@ -17,6 +17,10 @@ export const candidates = sqliteTable("candidates", {
   authenticityScore: real("authenticity_score").default(0),
   growthScore: real("growth_score").default(0),
   redFlagScore: real("red_flag_score").default(0),
+  // Growth metadata
+  engagementGrowthRatio: real("engagement_growth_ratio"),
+  engagementTrend: text("engagement_trend"),
+  engagementDataPoints: integer("engagement_data_points").default(0),
   // Pipeline
   pipelineStage: text("pipeline_stage").default("discovered"),
   notes: text("notes").default(""),

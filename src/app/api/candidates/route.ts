@@ -29,6 +29,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  const growthTrend = searchParams.get("growthTrend");
+  if (growthTrend) conditions.push(sql`${candidates.engagementTrend} = ${growthTrend}`);
+
   if (conditions.length > 0) {
     query = query.where(sql`${sql.join(conditions, sql` AND `)}`);
   }
@@ -36,6 +39,7 @@ export async function GET(req: NextRequest) {
   const sortColumn =
     sort === "followers" ? candidates.followerCount :
     sort === "recent" ? candidates.accountCreatedAt :
+    sort === "growth" ? candidates.growthScore :
     candidates.overallScore;
 
   const orderFn = order === "asc" ? asc : desc;

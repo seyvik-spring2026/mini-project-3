@@ -21,6 +21,9 @@ import {
   Repeat2,
   Eye,
   Calendar,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
@@ -210,6 +213,34 @@ export default function CandidateDetailPage() {
                 score={candidate.growthScore || 0}
                 color="bg-amber-500"
               />
+              {candidate.engagementTrend && (
+                <div className="flex items-center justify-between text-xs mt-1 px-1">
+                  <span className="text-slate-500">Engagement trend</span>
+                  <span
+                    className={cn(
+                      "flex items-center gap-1 font-medium",
+                      candidate.engagementTrend === "rising"
+                        ? "text-emerald-400"
+                        : candidate.engagementTrend === "declining"
+                        ? "text-red-400"
+                        : "text-slate-400"
+                    )}
+                  >
+                    {candidate.engagementTrend === "rising" && (
+                      <TrendingUp className="w-3 h-3" />
+                    )}
+                    {candidate.engagementTrend === "declining" && (
+                      <TrendingDown className="w-3 h-3" />
+                    )}
+                    {candidate.engagementTrend === "stable" && (
+                      <Minus className="w-3 h-3" />
+                    )}
+                    {candidate.engagementGrowthRatio != null
+                      ? `${candidate.engagementGrowthRatio.toFixed(1)}x`
+                      : candidate.engagementTrend}
+                  </span>
+                </div>
+              )}
               <ScoreBar
                 label="Red Flags"
                 score={candidate.redFlagScore || 0}

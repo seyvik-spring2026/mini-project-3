@@ -4,12 +4,13 @@ import { useState } from "react";
 import { useCandidates } from "@/lib/hooks";
 import { CandidateCard } from "@/components/candidate-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, SlidersHorizontal, ArrowUpDown, Users, Sparkles, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, SlidersHorizontal, ArrowUpDown, Users, Sparkles, TrendingUp, ChevronUp, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS = [
   { value: "score", label: "Score", icon: Sparkles },
   { value: "followers", label: "Followers", icon: Users },
+  { value: "growth", label: "Growth", icon: TrendingUp },
   { value: "recent", label: "Recent", icon: ArrowUpDown },
 ];
 
@@ -20,6 +21,7 @@ export default function DiscoverPage() {
   const [minScore, setMinScore] = useState("");
   const [maxScore, setMaxScore] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [growthTrend, setGrowthTrend] = useState("");
 
   function handleSort(value: string) {
     if (sort === value) {
@@ -34,6 +36,7 @@ export default function DiscoverPage() {
   if (search) params.search = search;
   if (minScore) params.minScore = minScore;
   if (maxScore) params.maxScore = maxScore;
+  if (growthTrend) params.growthTrend = growthTrend;
 
   const { data: candidates, isLoading, mutate } = useCandidates(params);
 
@@ -126,6 +129,19 @@ export default function DiscoverPage() {
                 onChange={(e) => setMaxScore(e.target.value)}
                 className="w-20 px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white"
               />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-slate-400">Growth:</label>
+              <select
+                value={growthTrend}
+                onChange={(e) => setGrowthTrend(e.target.value)}
+                className="px-2 py-1.5 bg-slate-800 border border-slate-600 rounded text-sm text-white"
+              >
+                <option value="">All</option>
+                <option value="rising">Rising</option>
+                <option value="stable">Stable</option>
+                <option value="declining">Declining</option>
+              </select>
             </div>
           </div>
         )}

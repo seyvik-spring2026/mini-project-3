@@ -8,7 +8,13 @@ export interface ScoreBreakdown {
   overall: number;
   builder: { score: number; signals: string[] };
   authenticity: { score: number; signals: string[] };
-  growth: { score: number; signals: string[] };
+  growth: {
+    score: number;
+    signals: string[];
+    engagementGrowthRatio: number | null;
+    engagementTrend: "rising" | "stable" | "declining" | null;
+    engagementDataPoints: number;
+  };
   redFlags: { score: number; signals: string[] };
 }
 

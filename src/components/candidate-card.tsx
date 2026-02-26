@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ScoreBadge } from "@/components/ui/score-badge";
 import { formatNumber, stageBgColor, stageLabel, cn } from "@/lib/utils";
-import { Users, MessageCircle, Heart } from "lucide-react";
+import { Users, MessageCircle, Heart, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import type { Candidate } from "@/lib/db/schema";
 
 export function CandidateCard({ candidate }: { candidate: Candidate }) {
@@ -46,6 +46,33 @@ export function CandidateCard({ candidate }: { candidate: Candidate }) {
             {formatNumber(candidate.tweetCount || 0)} tweets
           </span>
         </div>
+
+        {/* Growth Indicator */}
+        {candidate.engagementTrend && (
+          <div className="flex items-center gap-2 mb-3">
+            {candidate.engagementTrend === "rising" ? (
+              <span className="flex items-center gap-1 text-xs text-emerald-400">
+                <TrendingUp className="w-3.5 h-3.5" />
+                Growing
+                {candidate.engagementGrowthRatio != null && (
+                  <span className="text-emerald-500/70">
+                    ({candidate.engagementGrowthRatio.toFixed(1)}x)
+                  </span>
+                )}
+              </span>
+            ) : candidate.engagementTrend === "declining" ? (
+              <span className="flex items-center gap-1 text-xs text-red-400">
+                <TrendingDown className="w-3.5 h-3.5" />
+                Declining
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-slate-400">
+                <Minus className="w-3.5 h-3.5" />
+                Stable
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Stage badge */}
         <div className="flex items-center justify-between">

@@ -29,6 +29,9 @@ sqlite.exec(`
     authenticity_score REAL DEFAULT 0,
     growth_score REAL DEFAULT 0,
     red_flag_score REAL DEFAULT 0,
+    engagement_growth_ratio REAL,
+    engagement_trend TEXT,
+    engagement_data_points INTEGER DEFAULT 0,
     pipeline_stage TEXT DEFAULT 'discovered',
     notes TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now')),
@@ -79,6 +82,16 @@ sqlite.exec(`
     completed_at TEXT
   );
 `);
+
+// Migrate existing databases: add new columns if missing
+const alterStatements = [
+  "ALTER TABLE candidates ADD COLUMN engagement_growth_ratio REAL",
+  "ALTER TABLE candidates ADD COLUMN engagement_trend TEXT",
+  "ALTER TABLE candidates ADD COLUMN engagement_data_points INTEGER DEFAULT 0",
+];
+for (const stmt of alterStatements) {
+  try { sqlite.prepare(stmt).run(); } catch { /* column already exists */ }
+}
 
 // Ensure default scoring weights exist
 const weightCount = sqlite.prepare("SELECT COUNT(*) as count FROM scoring_weights").get() as { count: number };

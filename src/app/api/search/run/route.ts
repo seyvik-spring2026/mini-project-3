@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { candidates, tweets, searchRuns, searchQueries } from "@/lib/db/schema";
-import { searchTweets, getUserInfo } from "@/lib/twitter/client";
+import { searchTweets, getUserInfo, getUserTweets } from "@/lib/twitter/client";
 import { scoreCandidate } from "@/lib/scoring/engine";
 import { eq } from "drizzle-orm";
 
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     .get();
 
   try {
-    // Search tweets
+    // Search tweets (automatically filtered to last 7 days)
     const searchResult = await searchTweets(queryText, queryType);
     let candidatesFound = 0;
     let newCandidates = 0;
@@ -68,6 +68,21 @@ export async function POST(req: NextRequest) {
         userInfo = userTweets[0].author;
       }
 
+      // FOLLOWER FILTER: Hard-reject outside 500-10K range
+      const followerCount = userInfo.followers || 0;
+      if (followerCount < 500 || followerCount > 10000) {
+        continue;
+      }
+
+      // Fetch additional tweets for growth analysis (~20 recent timeline tweets)
+      let additionalTweets: (typeof searchResult.tweets)[number][] = [];
+      try {
+        const timelineResult = await getUserTweets(username);
+        additionalTweets = timelineResult.tweets || [];
+      } catch {
+        // If timeline fetch fails, proceed with search tweets only
+      }
+
       // Insert candidate
       const candidate = db
         .insert(candidates)
@@ -86,9 +101,19 @@ export async function POST(req: NextRequest) {
         .returning()
         .get();
 
-      // Insert tweets
+      // Deduplicate and combine search tweets + timeline tweets
+      const allRawTweets = [...userTweets];
+      const seenIds = new Set(userTweets.map((t) => t.id));
+      for (const tweet of additionalTweets) {
+        if (!seenIds.has(tweet.id)) {
+          allRawTweets.push(tweet);
+          seenIds.add(tweet.id);
+        }
+      }
+
+      // Insert all tweets
       const insertedTweets = [];
-      for (const tweet of userTweets) {
+      for (const tweet of allRawTweets) {
         const t = db
           .insert(tweets)
           .values({
@@ -118,6 +143,9 @@ export async function POST(req: NextRequest) {
           authenticityScore: scores.authenticity.score,
           growthScore: scores.growth.score,
           redFlagScore: scores.redFlags.score,
+          engagementGrowthRatio: scores.growth.engagementGrowthRatio,
+          engagementTrend: scores.growth.engagementTrend,
+          engagementDataPoints: scores.growth.engagementDataPoints,
           lastScoredAt: new Date().toISOString(),
         })
         .where(eq(candidates.id, candidate.id))

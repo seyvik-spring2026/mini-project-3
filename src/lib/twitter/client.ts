@@ -33,10 +33,21 @@ async function apiFetch<T>(path: string, params: Record<string, string> = {}): P
 export async function searchTweets(
   query: string,
   queryType: "Latest" | "Top" = "Latest",
-  cursor?: string
+  cursor?: string,
+  sinceDaysAgo: number = 7
 ): Promise<TweetSearchResponse> {
+  let enrichedQuery = query;
+  if (sinceDaysAgo > 0) {
+    const sinceDate = new Date();
+    sinceDate.setDate(sinceDate.getDate() - sinceDaysAgo);
+    const yyyy = sinceDate.getFullYear();
+    const mm = String(sinceDate.getMonth() + 1).padStart(2, "0");
+    const dd = String(sinceDate.getDate()).padStart(2, "0");
+    enrichedQuery = `${query} since:${yyyy}-${mm}-${dd}`;
+  }
+
   return apiFetch<TweetSearchResponse>("/twitter/tweet/advanced_search", {
-    query,
+    query: enrichedQuery,
     queryType,
     ...(cursor ? { cursor } : {}),
   });
