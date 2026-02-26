@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Mudita Talent Scout",
+  title: "Mudita",
   description: "AI-powered founder discovery pipeline for Mudita Venture Studios",
 };
 
