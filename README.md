@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mudita Studios CRM
 
-## Getting Started
+A full-stack Next.js CRM for discovering and scoring Twitter/X talent. Built with React 19, SQLite, Drizzle ORM, and Tailwind CSS 4.
 
-First, run the development server:
+## Features
+
+- Twitter/X candidate search via [twitterapi.io](https://twitterapi.io) proxy
+- Automated candidate scoring (builder, authenticity, growth, red-flag signals)
+- Kanban pipeline for managing candidates across stages
+- Persistent SQLite database with search history
+
+## Local Development
+
+1. Copy the env template and add your API key:
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local and set TWITTER_API_KEY
+   ```
+
+2. Install dependencies and start the dev server:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
+3. Open [http://localhost:3000](http://localhost:3000)
+
+## Deploy to Vercel
+
+Vercel is the recommended host — it has native Next.js support and a free tier.
+
+### One-time setup
+
+1. Push this repo to GitHub (if not already done)
+2. Go to [vercel.com/new](https://vercel.com/new) and import your GitHub repo
+3. In the Vercel dashboard, go to **Settings → Environment Variables** and add:
+   - `TWITTER_API_KEY` = your twitterapi.io key
+4. Click **Deploy**
+
+### CLI alternative
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm i -g vercel
+vercel
+# Follow the prompts, then set the env var:
+vercel env add TWITTER_API_KEY
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Caveats
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **SQLite is ephemeral on Vercel** — the database resets on each redeploy (data stored in `/tmp`). This is fine for demos and class assignments. For persistent data, use Railway or Render instead.
+- All Twitter API calls are server-side; your `TWITTER_API_KEY` is never exposed to the browser.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Environment Variables
 
-## Learn More
+| Variable | Required | Description |
+|---|---|---|
+| `TWITTER_API_KEY` | Yes | API key from [twitterapi.io](https://twitterapi.io) |
 
-To learn more about Next.js, take a look at the following resources:
+## Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Framework:** Next.js 16 (App Router)
+- **Frontend:** React 19, Tailwind CSS 4
+- **Database:** SQLite via `better-sqlite3` + Drizzle ORM
+- **Language:** TypeScript (strict)

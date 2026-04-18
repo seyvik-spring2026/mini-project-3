@@ -3,7 +3,10 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 import path from "path";
 
-const DB_PATH = path.join(process.cwd(), "mudita.db");
+// On Vercel serverless, process.cwd() is read-only — use /tmp instead
+const DB_PATH = process.env.VERCEL
+  ? "/tmp/mudita.db"
+  : path.join(process.cwd(), "mudita.db");
 
 const sqlite = new Database(DB_PATH);
 sqlite.pragma("journal_mode = WAL");
