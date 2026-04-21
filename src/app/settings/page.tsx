@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSearchQueries, useScoringWeights } from "@/lib/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { Plus, Trash2, Save, Search, SlidersHorizontal } from "lucide-react";
+import { Plus, Trash2, Save, Search, SlidersHorizontal, Play, Loader2, CheckCircle, XCircle } from "lucide-react";
 
 const TABS = [
   { id: "queries", label: "Search Queries", icon: Search },
@@ -48,10 +48,14 @@ export default function SettingsPage() {
   );
 }
 
+type RunState = "idle" | "running" | "done" | "error";
+
 function QueriesTab() {
   const { data: queries, isLoading, mutate } = useSearchQueries();
   const [newName, setNewName] = useState("");
   const [newQuery, setNewQuery] = useState("");
+  const [runStates, setRunStates] = useState<Record<number, RunState>>({});
+  const [runResults, setRunResults] = useState<Record<number, string>>({});
 
   async function addQuery() {
     if (!newName.trim() || !newQuery.trim()) return;
@@ -74,6 +78,32 @@ function QueriesTab() {
     mutate();
   }
 
+  async function runQuery(id: number) {
+    setRunStates((s) => ({ ...s, [id]: "running" }));
+    setRunResults((s) => ({ ...s, [id]: "" }));
+    try {
+      const res = await fetch("/api/search/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ queryId: id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRunStates((s) => ({ ...s, [id]: "error" }));
+        setRunResults((s) => ({ ...s, [id]: data.details || data.error || "Failed" }));
+      } else {
+        setRunStates((s) => ({ ...s, [id]: "done" }));
+        setRunResults((s) => ({
+          ...s,
+          [id]: `Found ${data.candidatesFound} candidates, ${data.newCandidates} new`,
+        }));
+      }
+    } catch (e) {
+      setRunStates((s) => ({ ...s, [id]: "error" }));
+      setRunResults((s) => ({ ...s, [id]: String(e) }));
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -89,27 +119,63 @@ function QueriesTab() {
       {/* Existing queries */}
       <div className="space-y-3">
         {queries && queries.length > 0 ? (
-          queries.map((q) => (
-            <div
-              key={q.id}
-              className="flex items-start justify-between gap-4 p-4 bg-slate-900 border border-slate-800 rounded-lg"
-            >
-              <div className="flex-1">
-                <h3 className="text-sm font-semibold text-white mb-1">
-                  {q.name}
-                </h3>
-                <p className="text-xs text-slate-400 font-mono break-all">
-                  {q.query}
-                </p>
-              </div>
-              <button
-                onClick={() => deleteQuery(q.id)}
-                className="p-2 text-slate-500 hover:text-red-400 transition-colors"
+          queries.map((q) => {
+            const state = runStates[q.id] || "idle";
+            const result = runResults[q.id];
+            return (
+              <div
+                key={q.id}
+                className="p-4 bg-slate-900 border border-slate-800 rounded-lg"
               >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-white mb-1">
+                      {q.name}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-mono break-all">
+                      {q.query}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => runQuery(q.id)}
+                      disabled={state === "running"}
+                      title="Run search"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-medium transition-colors"
+                    >
+                      {state === "running" ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Play className="w-3.5 h-3.5" />
+                      )}
+                      {state === "running" ? "Running…" : "Run"}
+                    </button>
+                    <button
+                      onClick={() => deleteQuery(q.id)}
+                      className="p-2 text-slate-500 hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                {result && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-1.5 mt-2 text-xs",
+                      state === "done" ? "text-emerald-400" : "text-red-400"
+                    )}
+                  >
+                    {state === "done" ? (
+                      <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                    ) : (
+                      <XCircle className="w-3.5 h-3.5 shrink-0" />
+                    )}
+                    {result}
+                  </div>
+                )}
+              </div>
+            );
+          })
         ) : (
           <p className="text-sm text-slate-500">
             No search queries configured. Add one below.
